@@ -331,6 +331,27 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 600px) {
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
         .hidden {
             display: none !important;
         }
@@ -367,7 +388,30 @@
             </div>
             <div class="form-group">
                 <label for="jd">Mô tả công việc (JD)</label>
-                <textarea id="jd" placeholder="Dán nội dung JD vào đây..."></textarea>
+                <textarea id="jd" placeholder="Dán nội dung JD vào đây...">VỊ TRÍ TUYỂN DỤNG: LẬP TRÌNH VIÊN WEB FRONTEND (ReactJS / Next.js)
+
+1. TRÁCH NHIỆM CÔNG VIỆC:
+- Phát triển giao diện ứng dụng Web Frontend bằng React.js hoặc Next.js.
+- Phối hợp với đội UI/UX chuyển đổi Figma thành giao diện web responsive, pixel-perfect.
+- Kết nối API từ Backend theo chuẩn RESTful hoặc GraphQL.
+- Tối ưu hiệu năng và tốc độ tải trang.
+
+2. YÊU CẦU KỸ NĂNG:
+- Tối thiểu 2 năm kinh nghiệm làm việc thực tế ở vị trí Frontend Developer.
+- Thành thạo HTML5, CSS3, JavaScript (ES6+), TypeScript.
+- Sử dụng thành thạo React.js (Hooks, Redux/Zustand hoặc Context API).
+- Có kinh nghiệm với Next.js (App Router là lợi thế).
+- Sử dụng TailwindCSS để styling.
+- Biết sử dụng Git.
+
+3. KỸ NĂNG MỀM:
+- Làm việc nhóm tốt, tinh thần chủ động.
+- Ham học hỏi, cởi mở với AI Tools trong công việc lập trình.
+
+4. PHÚC LỢI:
+- Lương: 15.000.000 - 30.000.000 VNĐ tuỳ năng lực.
+- Lương tháng 13, review lương 2 lần/năm.
+- Cấp Macbook làm việc.</textarea>
             </div>
             <div class="form-group">
                 <label for="emails">Email nhận báo cáo (cách nhau bằng dấu phẩy)</label>
@@ -387,7 +431,10 @@
         </div>
 
         <!-- Nút Phân Tích & Progress -->
-        <button class="btn btn-primary" id="btnAnalyze">🚀 Bắt Đầu Phân Tích AI</button>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="btnAnalyze">🚀 Bắt Đầu Phân Tích AI</button>
+            <button class="btn btn-secondary" id="btnReset">🔄 Phân Tích Lại</button>
+        </div>
         
         <div class="progress-container" id="progressContainer">
             <div class="progress-text" id="progressText">Đang xử lý: 0/0</div>
@@ -432,6 +479,7 @@
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
         const btnAnalyze = document.getElementById('btnAnalyze');
+        const btnReset = document.getElementById('btnReset');
         const progressContainer = document.getElementById('progressContainer');
         const progressText = document.getElementById('progressText');
         const progressBar = document.getElementById('progressBar');
@@ -564,6 +612,54 @@
             // Finished
             progressText.innerText = `Hoàn tất xử lý ${total}/${total} CV!`;
             btnReport.classList.remove('hidden');
+            btnReset.classList.remove('hidden');
+        });
+
+        btnReset.addEventListener('click', () => {
+            if (confirm("Bạn có chắc chắn muốn làm mới toàn bộ? Toàn bộ dữ liệu nhập và kết quả sẽ bị xóa.")) {
+                // Clear Inputs
+                campaignInput.value = '';
+                emailsInput.value = '';
+                // Note: We keep the default JD or clear it? User asked for default JD, 
+                // but usually "Reset" clears everything. Let's restore the default JD.
+                jdInput.value = `VỊ TRÍ TUYỂN DỤNG: LẬP TRÌNH VIÊN WEB FRONTEND (ReactJS / Next.js)
+
+1. TRÁCH NHIỆM CÔNG VIỆC:
+- Phát triển giao diện ứng dụng Web Frontend bằng React.js hoặc Next.js.
+- Phối hợp với đội UI/UX chuyển đổi Figma thành giao diện web responsive, pixel-perfect.
+- Kết nối API từ Backend theo chuẩn RESTful hoặc GraphQL.
+- Tối ưu hiệu năng và tốc độ tải trang.
+
+2. YÊU CẦU KỸ NĂNG:
+- Tối thiểu 2 năm kinh nghiệm làm việc thực tế ở vị trí Frontend Developer.
+- Thành thạo HTML5, CSS3, JavaScript (ES6+), TypeScript.
+- Sử dụng thành thạo React.js (Hooks, Redux/Zustand hoặc Context API).
+- Có kinh nghiệm với Next.js (App Router là lợi thế).
+- Sử dụng TailwindCSS để styling.
+- Biết sử dụng Git.
+
+3. KỸ NĂNG MỀM:
+- Làm việc nhóm tốt, tinh thần chủ động.
+- Ham học hỏi, cởi mở với AI Tools trong công việc lập trình.
+
+4. PHÚC LỢI:
+- Lương: 15.000.000 - 30.000.000 VNĐ tuỳ năng lực.
+- Lương tháng 13, review lương 2 lần/năm.
+- Cấp Macbook làm việc.`;
+
+                // Clear Files
+                selectedFiles = [];
+                renderFileList();
+
+                // Clear Results
+                resultTableBody.innerHTML = '';
+                allResults = [];
+                progressContainer.style.display = 'none';
+                resultCard.classList.add('hidden');
+                btnAnalyze.classList.remove('hidden');
+                btnReport.classList.add('hidden');
+                updateProgress(0, 0);
+            }
         });
 
         function updateProgress(current, total) {
@@ -629,16 +725,14 @@
                 const response = await fetch(WEBHOOK_2_URL, {
                     method: 'POST',
                     headers: {
-                        // Dùng text/plain để tránh kích hoạt CORS Preflight (OPTIONS request)
-                        // n8n vẫn có thể nhận và xử lý dữ liệu này.
-                        'Content-Type': 'text/plain'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`Server trả về lỗi ${response.status}: ${errorText || 'Không có phản hồi'}`);
+                    throw new Error(`n8n báo lỗi ${response.status}. Bạn hãy vào mục 'Executions' trong n8n để xem node nào đang bị đỏ nhé!`);
                 }
                 
                 alert("✅ Báo cáo đã được gửi đến trưởng phòng!");
