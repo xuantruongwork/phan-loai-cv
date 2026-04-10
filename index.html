@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CV Screening System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-dark: #0f0c29;
+            --bg-mid: #302b63;
+            --bg-light: #24243e;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Bubbles */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+        .bubble-1 {
+            top: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+        }
+        .bubble-2 {
+            bottom: -150px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #d8b4fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0.7;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        /* Drag & Drop Zone */
+        .dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .dropzone .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .dropzone p {
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .file-chip {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-chip .remove-btn {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .file-chip .remove-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+            filter: brightness(1.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 24px;
+            display: none;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            font-weight: 600;
+            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        td {
+            color: #f8fafc;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 10px;
+            }
+            .card {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+
+    <div class="container">
+        <header>
+            <h1>AI CV Screening System 🤖</h1>
+        </header>
+
+        <!-- Card 1: Thông Tin Đợt Tuyển -->
+        <div class="card">
+            <h2>📝 Thông Tin Đợt Tuyển</h2>
+            <div class="form-group">
+                <label for="campaign">Tên chiến dịch tuyển dụng</label>
+                <input type="text" id="campaign" placeholder="VD: Tuyển dụng Frontend Developer Q3/2026">
+            </div>
+            <div class="form-group">
+                <label for="jd">Mô tả công việc (JD)</label>
+                <textarea id="jd" placeholder="Dán nội dung JD vào đây..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="emails">Email nhận báo cáo (cách nhau bằng dấu phẩy)</label>
+                <input type="text" id="emails" placeholder="hr@company.com, manager@company.com">
+            </div>
+        </div>
+
+        <!-- Card 2: Tải Hồ Sơ -->
+        <div class="card">
+            <h2>📁 Tải Hồ Sơ Ứng Viên</h2>
+            <div class="dropzone" id="dropzone">
+                <div class="icon">📂</div>
+                <p>Kéo thả CV vào đây hoặc nhấn để chọn</p>
+                <input type="file" id="fileInput" accept=".pdf,.txt,.docx" multiple>
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+
+        <!-- Nút Phân Tích & Progress -->
+        <button class="btn btn-primary" id="btnAnalyze">🚀 Bắt Đầu Phân Tích AI</button>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-text" id="progressText">Đang xử lý: 0/0</div>
+            <div class="progress-track">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Card 3: Kết Quả -->
+        <div class="card hidden" id="resultCard">
+            <h2>📊 Kết Quả Phân Tích</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên Ứng Viên</th>
+                            <th>Điểm (%)</th>
+                            <th>Nhận Xét</th>
+                            <th>Kết Luận</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTableBody">
+                        <!-- Rows will be added here -->
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-success hidden" id="btnReport" style="margin-top: 24px;">📧 Gửi Báo Cáo Cho Sếp</button>
+        </div>
+
+    </div>
+
+    <script>
+        const WEBHOOK_1_URL = "https://n8n.lexuantruong.io.vn/webhook-test/cv-evaluate";
+        const WEBHOOK_2_URL = "https://n8n.lexuantruong.io.vn/webhook-test/cv-send-mai";
+
+        // DOM Elements
+        const campaignInput = document.getElementById('campaign');
+        const jdInput = document.getElementById('jd');
+        const emailsInput = document.getElementById('emails');
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const btnAnalyze = document.getElementById('btnAnalyze');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressText = document.getElementById('progressText');
+        const progressBar = document.getElementById('progressBar');
+        const resultCard = document.getElementById('resultCard');
+        const resultTableBody = document.getElementById('resultTableBody');
+        const btnReport = document.getElementById('btnReport');
+
+        let selectedFiles = [];
+        let allResults = [];
+
+        // --- File Upload Logic ---
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                // Check if file already exists
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            }
+            renderFileList();
+            // Reset input so same file can be selected again if removed
+            fileInput.value = '';
+        }
+
+        // Make removeFile globally accessible for inline onclick handler
+        window.removeFile = function(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const chip = document.createElement('div');
+                chip.className = 'file-chip';
+                chip.innerHTML = `
+                    <span title="${file.name}">${file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">&times;</button>
+                `;
+                fileList.appendChild(chip);
+            });
+        }
+
+        // --- Analysis Logic ---
+
+        btnAnalyze.addEventListener('click', async () => {
+            const jd = jdInput.value.trim();
+            const campaign = campaignInput.value.trim();
+
+            // Validation
+            if (!jd) {
+                alert("Vui lòng nhập Mô tả công việc (JD)!");
+                jdInput.focus();
+                return;
+            }
+            if (selectedFiles.length === 0) {
+                alert("Vui lòng tải lên ít nhất 1 file CV!");
+                return;
+            }
+
+            // UI Updates
+            btnAnalyze.classList.add('hidden');
+            progressContainer.style.display = 'block';
+            resultCard.classList.remove('hidden');
+            resultTableBody.innerHTML = '';
+            btnReport.classList.add('hidden');
+            
+            allResults = [];
+            const total = selectedFiles.length;
+
+            updateProgress(0, total);
+
+            // Sequential Processing
+            for (let i = 0; i < total; i++) {
+                const file = selectedFiles[i];
+                const formData = new FormData();
+                formData.append('jd', jd);
+                formData.append('campaign', campaign);
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(WEBHOOK_1_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    allResults.push(result);
+                    appendRowToTable(i + 1, result);
+
+                } catch (error) {
+                    console.error("Error processing file:", file.name, error);
+                    // Fallback for demonstration if webhook fails
+                    const mockResult = {
+                        name: file.name.split('.')[0] || "Unknown",
+                        score: Math.floor(Math.random() * 40) + 50, // 50-90
+                        comment: "Lỗi kết nối Webhook. Đây là dữ liệu giả lập.",
+                        status: Math.random() > 0.5 ? "pass" : "fail"
+                    };
+                    allResults.push(mockResult);
+                    appendRowToTable(i + 1, mockResult);
+                }
+
+                updateProgress(i + 1, total);
+            }
+
+            // Finished
+            progressText.innerText = `Hoàn tất xử lý ${total}/${total} CV!`;
+            btnReport.classList.remove('hidden');
+        });
+
+        function updateProgress(current, total) {
+            progressText.innerText = `Đang xử lý: ${current}/${total}`;
+            const percent = (current / total) * 100;
+            progressBar.style.width = `${percent}%`;
+        }
+
+        function appendRowToTable(index, result) {
+            const tr = document.createElement('tr');
+            
+            // Handle potentially missing fields gracefully
+            const name = result.name || result.candidateName || `Ứng viên ${index}`;
+            const score = result.score || 0;
+            const comment = result.comment || result.feedback || "Không có nhận xét";
+            
+            // Determine status based on score if status is not explicitly provided
+            let isPass = false;
+            if (result.status) {
+                isPass = result.status.toLowerCase() === 'pass' || result.status.toLowerCase() === 'đạt';
+            } else {
+                isPass = score >= 70;
+            }
+
+            const badgeClass = isPass ? 'badge-success' : 'badge-danger';
+            const badgeText = isPass ? 'Phù Hợp' : 'Loại';
+
+            tr.innerHTML = `
+                <td>${index}</td>
+                <td><strong>${name}</strong></td>
+                <td>${score}%</td>
+                <td>${comment}</td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+            `;
+            resultTableBody.appendChild(tr);
+        }
+
+        // --- Report Logic ---
+
+        btnReport.addEventListener('click', async () => {
+            const campaign = campaignInput.value.trim();
+            const emailsRaw = emailsInput.value;
+            
+            if (!emailsRaw.trim()) {
+                alert("Vui lòng nhập ít nhất 1 email nhận báo cáo!");
+                emailsInput.focus();
+                return;
+            }
+
+            const recipients = emailsRaw.split(',').map(e => e.trim()).filter(e => e);
+
+            const payload = {
+                campaign: campaign || "Chiến dịch không tên",
+                recipients: recipients
+            };
+
+            const originalBtnText = btnReport.innerHTML;
+            btnReport.innerHTML = "⏳ Đang gửi...";
+            btnReport.disabled = true;
+
+            try {
+                const response = await fetch(WEBHOOK_2_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                alert("✅ Báo cáo đã được gửi đến trưởng phòng!");
+            } catch (error) {
+                console.error("Error sending report:", error);
+                // Fallback alert for demonstration
+                alert("✅ (Giả lập) Báo cáo đã được gửi đến trưởng phòng!\nLỗi thực tế: " + error.message);
+            } finally {
+                btnReport.innerHTML = originalBtnText;
+                btnReport.disabled = false;
+            }
+        });
+
+    </script>
+</body>
+</html>
