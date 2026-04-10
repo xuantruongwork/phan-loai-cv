@@ -625,21 +625,26 @@
             btnReport.disabled = true;
 
             try {
+                console.log("Calling Webhook 2 (Production):", WEBHOOK_2_URL);
                 const response = await fetch(WEBHOOK_2_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        // Dùng text/plain để tránh kích hoạt CORS Preflight (OPTIONS request)
+                        // n8n vẫn có thể nhận và xử lý dữ liệu này.
+                        'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server trả về lỗi ${response.status}: ${errorText || 'Không có phản hồi'}`);
+                }
                 
                 alert("✅ Báo cáo đã được gửi đến trưởng phòng!");
             } catch (error) {
                 console.error("Error sending report:", error);
-                // Fallback alert for demonstration
-                alert("✅ (Giả lập) Báo cáo đã được gửi đến trưởng phòng!\nLỗi thực tế: " + error.message);
+                alert("❌ Lỗi gửi báo cáo!\n\nChi tiết: " + error.message + "\n\nHướng dẫn: Hãy kiểm tra xem Workflow n8n đã được 'Active' chưa và đã bật 'CORS Headers' chưa.");
             } finally {
                 btnReport.innerHTML = originalBtnText;
                 btnReport.disabled = false;
